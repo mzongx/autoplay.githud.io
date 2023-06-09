@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>demo</title>
+<!-- common head start -->
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+<meta name="description" content="">
+<meta name="keywords" content="">
+<link rel="stylesheet" href="css/base.css" />
+<!-- common head start -->
+<style>
+	.container{
+		text-align: center;
+	}
+	.play-btn{
+		margin-top: 50px;
+		display: inline-block;
+		text-align: center;
+		width: 200px;
+		height: 200px;
+		line-height: 200px;
+		border-radius: 50%;
+		border: 1px solid #abcdef;
+		background-color: #f00;
+		color: #fff;
+
+		/*旋转*/
+		-webkit-transition-property: -webkit-transform;
+
+	    -webkit-transition-duration: 1s;
+
+	    -moz-transition-property: -moz-transform;
+
+	    -moz-transition-duration: 1s;
+
+	    -webkit-animation: rotate 3s linear infinite;
+
+	    -moz-animation: rotate 3s linear infinite;
+
+	    -o-animation: rotate 3s linear infinite;
+
+	    animation: rotate 3s linear infinite;
+	}
+	.play-btn.playing{
+		background-color: green;
+		
+	    animation-play-state:running;
+    	-webkit-animation-play-state:running; /* Safari 和 Chrome */
+	}
+	.play-btn.puase{
+		animation-play-state: paused;
+  		-webkit-animation-play-state: paused;
+	}
+
+	/*旋转动画*/
+	@-webkit-keyframes rotate{
+
+	    from{-webkit-transform: rotate(0deg)}
+
+	    to{-webkit-transform: rotate(360deg)}
+
+	}
+
+	@-moz-keyframes rotate{
+
+	    from{-moz-transform: rotate(0deg)}
+
+	    to{-moz-transform: rotate(359deg)}
+
+	}
+
+	@-o-keyframes rotate{
+
+	    from{-o-transform: rotate(0deg)}
+
+	    to{-o-transform: rotate(359deg)}
+
+	}
+
+	@keyframes rotate{
+
+	    from{transform: rotate(0deg)}
+
+	    to{transform: rotate(359deg)}
+
+	}
+</style>
+</head>
+<body>
+	<div id="app" class="" v-cloak>
+		<div class="container" @click="toggle">
+			<span class="play-btn" :class="{ 'playing' : isPlaying, 'puase': !isPlaying }">
+				{{ isPlaying ? '播放中' : '已暂停' }}
+			</span>
+		</div>
+	</div>
+	<!-- common js start -->
+	<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<script src="./js/howler/howler.min.js"></script>
+	<script src="./js/jquery/jquery-3.3.1.min.js"></script>
+	<script src="./js/vuejs2.0/vue.js"></script>
+	<!-- common js end-->
+	<script>
+		let app = new Vue({
+			el: '#app',
+			data() {
+				return {
+					playId: '', // 播放id
+					musicInstance: null // 播放实例
+				}
+			},
+			methods: {
+				// 判断浏览器类型
+				// parseUa() {
+				// 	var c = navigator.userAgent;
+			 //        var d = navigator.userAgent.toLowerCase();
+			 //        var e = d.match(/MicroMessenger/i) == "micromessenger";
+			 //        var b = e || (!!c.match(/(iPhone|iPod|Android|ios|Mobile)/i));
+			 //        return {
+			 //            mobile: b,
+			 //            pc: !b,
+			 //            ios: !!c.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),
+			 //            android: c.indexOf("Android") > -1,
+			 //            weixin: e,
+			 //            newsapp: c.indexOf("NewsApp") > -1,
+			 //            yixin: c.indexOf("YiXin") > -1,
+			 //            weibo: c.indexOf("weibo") > -1,
+			 //            yunyuedu: c.indexOf("PRIS") > -1,
+			 //            cloudmusic: d.indexOf("neteasemusic") > -1,
+			 //            douyin: d.indexOf("aweme") > -1
+			 //        }
+				// },
+				initPlayer(url) {
+					Howler.autoUnlock = false;
+					this.musicInstance = new Howl({
+					  src: [url],
+					  loop: true,
+					  autoplay: true,
+					  preload: true,
+					  html5: true,
+					  onplayerror: () => {
+							this.musicInstance.once('unlock', () => {
+								this.musicInstance.play();
+							});
+						}
+					})
+					this.musicInstance.on('load',()=>{
+					  window.WeixinJSBridge && window.WeixinJSBridge.invoke('getNetworkType', {},  ()=> {
+					    this.play();
+					  }, false);
+					})
+					// const { weixin } = this.parseUa()
+					// // 非微信，需要用户触发屏幕才可以播放
+					// if (!weixin) {
+					// 	document.addEventListener("touchstart", this.play, false);
+					// }
+				},
+				toggle() {
+					if (this.isPlaying) {
+						this.pause(this.playId)
+					} else {
+						this.play()
+					}
+				},
+				play() {
+					// Id用于连续播放
+					if (this.playId) {
+						this.musicInstance.play(this.playId);
+					} else {
+						this.playId = this.musicInstance.play();
+					}
+				},
+				pause(id) {
+					this.musicInstance.pause();
+				}
+			},
+			computed: {
+				// 是否播放
+				isPlaying() {
+					return this.musicInstance && this.musicInstance.playing()
+				}
+			},
+			mounted() {
+				Howler.autoUnlock = false;
+				this.$nextTick(() => {
+					this.initPlayer('./qingtian.mp3')
+				})
+			}
+			// beforeDestroy() {
+			// 	document.removeEventListener("touchstart", this.play, false);
+			// }
+		})
+	</script>
+</body>
+</html>
