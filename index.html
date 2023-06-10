@@ -139,7 +139,6 @@
 					  loop: true,
 					  autoplay: true,
 					  preload: true,
-					  html5: true,
 					  onplayerror: () => {
 							this.musicInstance.once('unlock', () => {
 								this.musicInstance.play();
@@ -183,7 +182,6 @@
 				}
 			},
 			mounted() {
-				Howler.autoUnlock = false;
 				this.$nextTick(() => {
 					this.initPlayer('./qingtian.mp3')
 				})
